@@ -5,11 +5,11 @@ namespace ProductService.Application.Interfaces
 {
     public interface IProductService
     {
-        Task<Product?> GetByIdAsync(Guid id);
-        Task<List<Product>> GetUserProductsAsync(string userId);
-        Task<ProductSearchResult> SearchProductsAsync(ProductSearchCriteria criteria);
-        Task<Product> CreateProductAsync(CreateProductDto createDto, string userId);
-        Task<Product?> UpdateProductAsync(Guid id, UpdateProductDto updateDto, string userId);
-        Task<bool> DeleteProductAsync(Guid id, string userId);
+        Task<Product?> GetByIdAsync(GetProductByIdQuery query);
+        Task<List<Product>> GetUserProductsAsync(GetUserProductsQuery query);
+        Task<ProductSearchResult> SearchProductsAsync(SearchProductsQuery query);
+        Task<Product> CreateProductAsync(CreateProductCommand command);
+        Task<Product?> UpdateProductAsync(UpdateProductCommand command, string userId);
+        Task<bool> DeleteProductAsync(DeleteProductCommand command);
     }
 }

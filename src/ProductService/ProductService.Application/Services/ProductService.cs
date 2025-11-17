@@ -14,36 +14,45 @@ namespace ProductService.Application.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<Product?> GetByIdAsync(Guid id)
+        public async Task<Product?> GetByIdAsync(GetProductByIdQuery query)
         {
-            return await _unitOfWork.Products.GetByIdAsync(id);
+            return await _unitOfWork.Products.GetByIdAsync(query.ProductId);
         }
 
-        public async Task<List<Product>> GetUserProductsAsync(string userId)
+        public async Task<List<Product>> GetUserProductsAsync(GetUserProductsQuery query)
         {
-            return await _unitOfWork.Products.GetByUserIdAsync(userId);
+            return await _unitOfWork.Products.GetByUserIdAsync(query.UserId);
         }
 
-        public async Task<ProductSearchResult> SearchProductsAsync(ProductSearchCriteria criteria)
+        public async Task<ProductSearchResult> SearchProductsAsync(SearchProductsQuery query)
         {
+            var criteria = new ProductSearchCriteria(
+                Name: query.Name,
+                CategoryId: query.CategoryId,
+                MinPrice: query.MinPrice,
+                MaxPrice: query.MaxPrice,
+                IsAvailable: query.IsAvailable,
+                CreatedByUserId: query.CreatedByUserId
+            );
+
             return await _unitOfWork.Products.SearchAsync(criteria);
         }
 
-        public async Task<Product> CreateProductAsync(CreateProductDto createDto, string userId)
+        public async Task<Product> CreateProductAsync(CreateProductCommand command)
         {
-            var category = await _unitOfWork.Categories.GetByIdAsync(createDto.CategoryId);
+            var category = await _unitOfWork.Categories.GetByIdAsync(command.CategoryId);
             if (category == null)
                 throw new ArgumentException("Category not found");
 
             var product = new Product
             {
                 Id = Guid.NewGuid(),
-                Name = createDto.Name,
-                Description = createDto.Description,
-                Price = createDto.Price,
-                IsAvailable = createDto.IsAvailable,
-                CategoryId = createDto.CategoryId,
-                CreatedByUserId = userId,
+                Name = command.Name,
+                Description = command.Description,
+                Price = command.Price,
+                IsAvailable = command.IsAvailable,
+                CategoryId = command.CategoryId,
+                CreatedByUserId = command.UserId,
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -54,36 +63,36 @@ namespace ProductService.Application.Services
             return product;
         }
 
-        public async Task<Product?> UpdateProductAsync(Guid id, UpdateProductDto updateDto, string userId)
+        public async Task<Product?> UpdateProductAsync(UpdateProductCommand command, string userId)
         {
-            var product = await _unitOfWork.Products.GetByIdAsync(id);
+            var product = await _unitOfWork.Products.GetByIdAsync(command.ProductId);
             if (product == null)
                 return null;
 
             if (product.CreatedByUserId != userId)
                 throw new UnauthorizedAccessException("You can only update your own products");
 
-            if (updateDto.CategoryId.HasValue && updateDto.CategoryId.Value != product.CategoryId)
+            if (command.CategoryId.HasValue && command.CategoryId.Value != product.CategoryId)
             {
-                var category = await _unitOfWork.Categories.GetByIdAsync(updateDto.CategoryId.Value);
+                var category = await _unitOfWork.Categories.GetByIdAsync(command.CategoryId.Value);
                 if (category == null)
                     throw new ArgumentException("Category not found");
 
-                product.CategoryId = updateDto.CategoryId.Value;
+                product.CategoryId = command.CategoryId.Value;
                 product.Category = category;
             }
 
-            if (!string.IsNullOrWhiteSpace(updateDto.Name))
-                product.Name = updateDto.Name;
+            if (!string.IsNullOrWhiteSpace(command.Name))
+                product.Name = command.Name;
 
-            if (!string.IsNullOrWhiteSpace(updateDto.Description))
-                product.Description = updateDto.Description;
+            if (!string.IsNullOrWhiteSpace(command.Description))
+                product.Description = command.Description;
 
-            if (updateDto.Price.HasValue)
-                product.Price = updateDto.Price.Value;
+            if (command.Price.HasValue)
+                product.Price = command.Price.Value;
 
-            if (updateDto.IsAvailable.HasValue)
-                product.IsAvailable = updateDto.IsAvailable.Value;
+            if (command.IsAvailable.HasValue)
+                product.IsAvailable = command.IsAvailable.Value;
 
             await _unitOfWork.Products.UpdateAsync(product);
             await _unitOfWork.SaveChangesAsync();
@@ -91,13 +100,13 @@ namespace ProductService.Application.Services
             return product;
         }
 
-        public async Task<bool> DeleteProductAsync(Guid id, string userId)
+        public async Task<bool> DeleteProductAsync(DeleteProductCommand command)
         {
-            var product = await _unitOfWork.Products.GetByIdAsync(id);
+            var product = await _unitOfWork.Products.GetByIdAsync(command.ProductId);
             if (product == null)
                 return false;
 
-            if (product.CreatedByUserId != userId)
+            if (product.CreatedByUserId != command.UserId)
                 throw new UnauthorizedAccessException("You can only delete your own products");
 
             await _unitOfWork.Products.DeleteAsync(product);

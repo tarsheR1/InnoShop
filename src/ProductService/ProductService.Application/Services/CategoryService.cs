@@ -19,18 +19,18 @@ namespace ProductService.Application.Services
             return await _unitOfWork.Categories.GetByIdAsync(id);
         }
 
-        public async Task<List<Category>> GetAllCategoriesAsync()
+        public async Task<List<Category>> GetAllCategoriesAsync(GetAllCategoriesQuery query)
         {
             return await _unitOfWork.Categories.GetAllAsync();
         }
 
-        public async Task<Category> CreateCategoryAsync(CreateCategoryDto createDto)
+        public async Task<Category> CreateCategoryAsync(CreateCategoryCommand command)
         {
             var category = new Category
             {
                 Id = Guid.NewGuid(),
-                Name = createDto.Name,
-                Description = createDto.Description
+                Name = command.Name,
+                Description = command.Description
             };
 
             await _unitOfWork.Categories.AddAsync(category);
@@ -39,17 +39,17 @@ namespace ProductService.Application.Services
             return category;
         }
 
-        public async Task<Category?> UpdateCategoryAsync(Guid id, UpdateCategoryDto updateDto)
+        public async Task<Category?> UpdateCategoryAsync(UpdateCategoryCommand command)
         {
-            var category = await _unitOfWork.Categories.GetByIdAsync(id);
+            var category = await _unitOfWork.Categories.GetByIdAsync(command.CategoryId);
             if (category == null)
                 return null;
 
-            if (!string.IsNullOrWhiteSpace(updateDto.Name))
-                category.Name = updateDto.Name;
+            if (!string.IsNullOrWhiteSpace(command.Name))
+                category.Name = command.Name;
 
-            if (!string.IsNullOrWhiteSpace(updateDto.Description))
-                category.Description = updateDto.Description;
+            if (!string.IsNullOrWhiteSpace(command.Description))
+                category.Description = command.Description;
 
             await _unitOfWork.Categories.UpdateAsync(category);
             await _unitOfWork.SaveChangesAsync();
