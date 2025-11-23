@@ -1,5 +1,4 @@
-﻿using ProductService.Data;
-using ProductService.Domain.Interfaces;
+﻿using ProductService.Domain.Interfaces;
 using ProductService.Infrastructure.DataAccess.Repositories;
 
 namespace ProductService.Infrastructure.DataAccess

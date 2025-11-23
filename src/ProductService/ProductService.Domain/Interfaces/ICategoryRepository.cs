@@ -12,5 +12,3 @@ namespace ProductService.Domain.Interfaces
         Task<bool> ExistsAsync(Guid id);
     }
 }
-
-

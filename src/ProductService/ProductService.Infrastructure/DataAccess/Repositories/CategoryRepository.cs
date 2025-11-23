@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using ProductService.Data;
 using ProductService.Domain.Entities;
 using ProductService.Domain.Interfaces;
 
