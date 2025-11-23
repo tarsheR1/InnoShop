@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 
-namespace ProductService.Api.Validations.Product
+namespace ProductService.Api.Validations.Product.Command
 {
     public class DeleteProductCommandValidator : AbstractValidator<DeleteProductCommand>
     {
@@ -13,5 +13,4 @@ namespace ProductService.Api.Validations.Product
                 .NotEmpty().WithMessage("ID пользователя обязательно");
         }
     }
-
 }

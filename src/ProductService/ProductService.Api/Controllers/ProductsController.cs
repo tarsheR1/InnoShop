@@ -16,24 +16,24 @@ namespace ProductService.Api.Controllers
         }
 
         [HttpGet("{id:guid}")]
-        public async Task<IActionResult> GetById(Guid id)
+        public async Task<IActionResult> GetProduct(Guid id)
         {
             var query = new GetProductByIdQuery(id);
             var product = await _productService.GetByIdAsync(query);
 
             if (product == null)
-                return NotFound();
+                throw new FileNotFoundException($"Product with id {id} not found");
 
             return Ok(product);
         }
 
-        [HttpGet("my")]
+        [HttpGet("user")]
         [Authorize]
-        public async Task<IActionResult> GetMyProducts()
+        public async Task<IActionResult> GetUserProducts()
         {
             var userId = User.FindFirst("sub")?.Value ?? User.Identity?.Name;
             if (string.IsNullOrEmpty(userId))
-                return Unauthorized();
+                throw new UnauthorizedAccessException("User ID not found in token");
 
             var query = new GetUserProductsQuery(userId);
             var products = await _productService.GetUserProductsAsync(query);
@@ -41,8 +41,8 @@ namespace ProductService.Api.Controllers
             return Ok(products);
         }
 
-        [HttpGet("search")]
-        public async Task<IActionResult> Search([FromQuery] SearchProductsQuery query)
+        [HttpGet]
+        public async Task<IActionResult> SearchProducts([FromQuery] SearchProductsQuery query)
         {
             var result = await _productService.SearchProductsAsync(query);
             return Ok(result);
@@ -50,73 +50,48 @@ namespace ProductService.Api.Controllers
 
         [HttpPost]
         [Authorize]
-        public async Task<IActionResult> Create([FromBody] CreateProductCommand command)
+        public async Task<IActionResult> CreateProduct([FromBody] CreateProductCommand command)
         {
             var userId = User.FindFirst("sub")?.Value ?? User.Identity?.Name;
             if (string.IsNullOrEmpty(userId))
-                return Unauthorized();
+                throw new UnauthorizedAccessException("User ID not found in token");
 
-            try
-            {
-                var product = await _productService.CreateProductAsync(command with { UserId = userId });
-                return CreatedAtAction(nameof(GetById), new { id = product.Id }, product);
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            var product = await _productService.CreateProductAsync(command with { UserId = userId });
+            return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, product);
         }
 
         [HttpPut("{id:guid}")]
         [Authorize]
-        public async Task<IActionResult> Update(Guid id, [FromBody] UpdateProductCommand command)
+        public async Task<IActionResult> UpdateProduct(Guid id, [FromBody] UpdateProductCommand command)
         {
             var userId = User.FindFirst("sub")?.Value ?? User.Identity?.Name;
             if (string.IsNullOrEmpty(userId))
-                return Unauthorized();
+                throw new UnauthorizedAccessException("User ID not found in token");
 
-            try
-            {
-                var updatedCommand = command with { ProductId = id };
-                var product = await _productService.UpdateProductAsync(updatedCommand, userId);
+            var updatedCommand = command with { ProductId = id };
+            var product = await _productService.UpdateProductAsync(updatedCommand, userId);
 
-                if (product == null)
-                    return NotFound();
+            if (product == null)
+                throw new FileNotFoundException($"Product with id {id} not found");
 
-                return Ok(product);
-            }
-            catch (UnauthorizedAccessException)
-            {
-                return Forbid();
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            return Ok(product);
         }
 
         [HttpDelete("{id:guid}")]
         [Authorize]
-        public async Task<IActionResult> Delete(Guid id)
+        public async Task<IActionResult> DeleteProduct(Guid id)
         {
             var userId = User.FindFirst("sub")?.Value ?? User.Identity?.Name;
             if (string.IsNullOrEmpty(userId))
-                return Unauthorized();
+                throw new UnauthorizedAccessException("User ID not found in token");
 
-            try
-            {
-                var command = new DeleteProductCommand(id, userId);
-                var result = await _productService.DeleteProductAsync(command);
+            var command = new DeleteProductCommand(id, userId);
+            var result = await _productService.DeleteProductAsync(command);
 
-                if (!result)
-                    return NotFound();
+            if (!result)
+                throw new FileNotFoundException($"Product with id {id} not found");
 
-                return NoContent();
-            }
-            catch (UnauthorizedAccessException)
-            {
-                return Forbid();
-            }
+            return NoContent();
         }
     }
 }

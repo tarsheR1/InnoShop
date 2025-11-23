@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 
-namespace ProductService.Api.Validations.Product
+namespace ProductService.Api.Validations.Product.Command
 {
     public class CreateProductCommandValidator : AbstractValidator<CreateProductCommand>
     {
