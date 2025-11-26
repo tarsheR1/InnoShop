@@ -4,16 +4,16 @@ namespace UserService.Domain.Interfaces.Services
 {
     public interface IUserService
     {
-        Task<User> RegisterUserAsync(string email, string password, string? firstName, string? lastName);
-        Task<User?> GetUserByIdAsync(Guid userId);
-        Task<User?> GetUserByUsernameAsync(string username);
-        Task<User?> GetUserByEmailAsync(string email);
-        Task UpdateUserProfileAsync(Guid userId, string? firstName, string? lastName, string? email);
-        Task ChangePasswordAsync(Guid userId, string currentPassword, string newPassword);
-        Task DeactivateUserAsync(Guid userId);
-        Task ActivateUserAsync(Guid userId);
-        Task<IEnumerable<User>> GetUsersByRoleAsync(string roleName);
-        Task<bool> IsEmailUniqueAsync(string email);
-        Task<bool> IsUsernameUniqueAsync(string username);
+        Task<User> RegisterUserAsync(string email, string password, string? firstName, string? lastName, CancellationToken cancellationToken);
+        Task<User?> GetUserByIdAsync(Guid userId, CancellationToken cancellationToken);
+        Task<User?> GetUserByUsernameAsync(string username, CancellationToken cancellationToken);
+        Task<User?> GetUserByEmailAsync(string email, CancellationToken cancellationToken);
+        Task UpdateUserProfileAsync(Guid userId, string? firstName, string? lastName, string? email, CancellationToken cancellationToken);
+        Task ChangePasswordAsync(Guid userId, string currentPassword, string newPassword, CancellationToken cancellationToken);
+        Task DeactivateUserAsync(Guid userId, CancellationToken cancellationToken);
+        Task ActivateUserAsync(Guid userId, CancellationToken cancellationToken);
+        Task<IEnumerable<User>> GetUsersByRoleAsync(string roleName, CancellationToken cancellationToken);
+        Task<bool> IsEmailUniqueAsync(string email, CancellationToken cancellationToken);
+        Task<bool> IsUsernameUniqueAsync(string username, CancellationToken cancellationToken);
     }
 }

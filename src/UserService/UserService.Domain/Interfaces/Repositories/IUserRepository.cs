@@ -4,11 +4,11 @@ namespace UserService.Domain.Interfaces.Repositories
 {
     public interface IUserRepository : IRepository<User>
     {
-        Task<User?> GetByUsernameAsync(string username);
-        Task<User?> GetByEmailAsync(string email);
-        Task<bool> UsernameExistsAsync(string username);
-        Task<bool> EmailExistsAsync(string email);
-        Task<IEnumerable<User>> GetUsersByRoleAsync(string roleName);
-        Task UpdateLastLoginAsync(Guid userId);
+        Task<User?> GetByUsernameAsync(string username, CancellationToken cancellationToken);
+        Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken);
+        Task<bool> UsernameExistsAsync(string username, CancellationToken cancellationToken);
+        Task<bool> EmailExistsAsync(string email, CancellationToken cancellationToken);
+        Task<IEnumerable<User>> GetUsersByRoleAsync(string roleName, CancellationToken cancellationToken);
+        Task UpdateLastLoginAsync(Guid userId, CancellationToken cancellationToken);
     }
 }

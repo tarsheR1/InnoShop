@@ -4,11 +4,11 @@ namespace UserService.Domain.Interfaces.Services
 {
     public interface IRoleService
     {
-        Task<Role?> GetRoleByNameAsync(string roleName);
-        Task<IEnumerable<Role>> GetAllRolesAsync();
-        Task<bool> UserHasRoleAsync(int userId, string roleName);
-        Task<bool> AssignRoleToUserAsync(int userId, string roleName);
-        Task<bool> RemoveRoleFromUserAsync(int userId, string roleName);
-        Task<string[]> GetUserRolesAsync(int userId);
+        Task<Role?> GetRoleByNameAsync(string roleName, CancellationToken cancellationToken);
+        Task<IEnumerable<Role>> GetAllRolesAsync(CancellationToken cancellationToken);
+        Task<bool> UserHasRoleAsync(Guid userId, string roleName, CancellationToken cancellationToken);
+        Task<bool> AssignRoleToUserAsync(Guid userId, string roleName, CancellationToken cancellationToken);
+        Task<bool> RemoveRoleFromUserAsync(Guid userId, string roleName, CancellationToken cancellationToken);
+        Task<string[]> GetUserRolesAsync(Guid userId, CancellationToken cancellationToken);
     }
 }

@@ -4,8 +4,8 @@ namespace UserService.Domain.Interfaces.Repositories
 {
     public interface IRoleRepository : IRepository<Role>
     {
-        Task<Role?> GetByNameAsync(string roleName);
-        Task<bool> RoleExistsAsync(string roleName);
-        Task<Role?> GetDefaultRoleAsync();
+        Task<Role?> GetByNameAsync(string roleName, CancellationToken cancellationToken);
+        Task<bool> RoleExistsAsync(string roleName, CancellationToken cancellationToken);
+        Task<Role?> GetDefaultRoleAsync(CancellationToken cancellationToken);
     }
 }

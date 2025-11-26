@@ -4,11 +4,11 @@ namespace UserService.Domain.Interfaces.Services
 {
     public interface ITokenService
     {
-        string GenerateAccessToken(User user);
-        string GenerateRefreshToken();
-        Task<string> GenerateAndSaveRefreshTokenAsync(int userId, string jwtId);
-        Task<bool> ValidateRefreshTokenAsync(string refreshToken, string jwtId);
-        Task RevokeRefreshTokenAsync(string refreshToken);
-        Task CleanExpiredRefreshTokensAsync();
+        string GenerateAccessToken(User user, CancellationToken cancellationToken);
+        string GenerateRefreshToken(CancellationToken cancellationToken);
+        Task<string> GenerateAndSaveRefreshTokenAsync(int userId, string jwtId, CancellationToken cancellationToken);
+        Task<bool> ValidateRefreshTokenAsync(string refreshToken, string jwtId, CancellationToken cancellationToken);
+        Task RevokeRefreshTokenAsync(string refreshToken, CancellationToken cancellationToken);
+        Task CleanExpiredRefreshTokensAsync(CancellationToken cancellationToken);
     }
 }
