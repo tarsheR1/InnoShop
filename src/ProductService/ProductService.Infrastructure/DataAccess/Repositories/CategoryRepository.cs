@@ -15,7 +15,9 @@ namespace ProductService.Infrastructure.DataAccess.Repositories
 
         public async Task<Category?> GetByIdAsync(Guid id)
         {
-            return await _context.Categories.FindAsync(id);
+            return await _context.Categories
+                .Include(c => c.Products)
+                .FirstOrDefaultAsync(c => c.Id == id);
         }
 
         public async Task<List<Category>> GetAllAsync()

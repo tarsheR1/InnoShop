@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.0.11217.181 d18.0
+VisualStudioVersion = 18.0.11217.181
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProductService.Api", "ProductService.Api\ProductService.Api.csproj", "{08EBC55F-8C08-43D1-9FFE-0FE197891417}"
 EndProject
@@ -15,6 +15,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Элементы решен
 	ProjectSection(SolutionItems) = preProject
 		docker-compose.yml = docker-compose.yml
 	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{9F9C3E2D-3B1B-4A4B-97CE-E467E23DE56D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.csproj", "{185255AE-19E1-441F-910B-17B08A7E6D05}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -38,9 +42,16 @@ Global
 		{E4BC91DD-7706-4450-9F31-C26B191734DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E4BC91DD-7706-4450-9F31-C26B191734DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E4BC91DD-7706-4450-9F31-C26B191734DD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{185255AE-19E1-441F-910B-17B08A7E6D05}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{185255AE-19E1-441F-910B-17B08A7E6D05}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{185255AE-19E1-441F-910B-17B08A7E6D05}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{185255AE-19E1-441F-910B-17B08A7E6D05}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{185255AE-19E1-441F-910B-17B08A7E6D05} = {9F9C3E2D-3B1B-4A4B-97CE-E467E23DE56D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A043BA53-6FEC-4751-A00C-CF1C55B5F447}
