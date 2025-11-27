@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using UserService.API.Dto;
+using UserService.API.Dto.Common;
 using UserService.Domain.Interfaces.Services;
 
 namespace UserService.API.Controllers
@@ -51,14 +51,15 @@ namespace UserService.API.Controllers
             }
         }
 
-        [HttpPost("assign")]
-        public async Task<ActionResult<ApiResponse>> AssignRole(
-            [FromBody] AssignRoleRequest request,
+        [HttpPut("users/{userId:guid}/roles/{roleName}")]
+        public async Task<ActionResult<ApiResponse>> AssignRoleToUser(
+            Guid userId,
+            string roleName,
             CancellationToken cancellationToken)
         {
             try
             {
-                var result = await _roleService.AssignRoleToUserAsync(request.UserId, request.RoleName, cancellationToken);
+                var result = await _roleService.AssignRoleToUserAsync(userId, roleName, cancellationToken);
 
                 if (!result)
                     return BadRequest(new ApiResponse { Success = false, Error = "Failed to assign role" });
@@ -71,14 +72,15 @@ namespace UserService.API.Controllers
             }
         }
 
-        [HttpPost("remove")]
-        public async Task<ActionResult<ApiResponse>> RemoveRole(
-            [FromBody] RemoveRoleRequest request,
+        [HttpDelete("users/{userId:guid}/roles/{roleName}")]
+        public async Task<ActionResult<ApiResponse>> RemoveRoleFromUser(
+            Guid userId,
+            string roleName,
             CancellationToken cancellationToken)
         {
             try
             {
-                var result = await _roleService.RemoveRoleFromUserAsync(request.UserId, request.RoleName, cancellationToken);
+                var result = await _roleService.RemoveRoleFromUserAsync(userId, roleName, cancellationToken);
 
                 if (!result)
                     return BadRequest(new ApiResponse { Success = false, Error = "Failed to remove role" });
@@ -91,7 +93,7 @@ namespace UserService.API.Controllers
             }
         }
 
-        [HttpGet("user/{userId:guid}")]
+        [HttpGet("users/{userId:guid}")]
         public async Task<ActionResult<ApiResponse<List<Domain.Entities.Role>>>> GetUserRoles(
             Guid userId,
             CancellationToken cancellationToken)
@@ -107,8 +109,8 @@ namespace UserService.API.Controllers
             }
         }
 
-        [HttpGet("user/{userId:guid}/has-role/{roleName}")]
-        public async Task<ActionResult<ApiResponse<bool>>> UserHasRole(
+        [HttpGet("users/{userId:guid}/roles/{roleName}")]
+        public async Task<ActionResult<ApiResponse<bool>>> CheckUserRole(
             Guid userId,
             string roleName,
             CancellationToken cancellationToken)

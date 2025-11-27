@@ -1,4 +1,4 @@
-﻿namespace UserService.API.Dto
+﻿namespace UserService.API.Dto.Role
 {
     public class RemoveRoleRequest
     {

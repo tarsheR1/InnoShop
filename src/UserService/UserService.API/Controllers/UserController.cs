@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using UserService.API.Dto;
-using UserService.Application.Dto.User;
+using UserService.API.Dto.Common;
+using UserService.API.Dto.User;
+using UserService.API.Extensions;
+using UserService.Application.Dto.UserDto;
 using UserService.Domain.Entities;
 using UserService.Domain.Interfaces.Services;
 
@@ -16,17 +18,18 @@ namespace UserService.API.Controllers
         private readonly IUserService _userService;
         private readonly IMapper _mapper;
 
-        public UsersController(IUserService userService)
+        public UsersController(IUserService userService, IMapper mapper)
         {
             _userService = userService;
+            _mapper = mapper;
         }
 
-        [HttpGet("profile")]
-        public async Task<ActionResult<ApiResponse<UserDto>>> GetProfile(CancellationToken cancellationToken)
+        [HttpGet("me")]
+        public async Task<ActionResult<ApiResponse<UserDto>>> GetCurrentUser(CancellationToken cancellationToken)
         {
             try
             {
-                var userId = GetCurrentUserId();
+                var userId = User.GetUserId();
                 var user = await _userService.GetUserByIdAsync(userId, cancellationToken);
 
                 if (user == null)
@@ -43,7 +46,9 @@ namespace UserService.API.Controllers
 
         [HttpGet("{id:guid}")]
         [Authorize(Roles = "Admin,Moderator")]
-        public async Task<ActionResult<ApiResponse<UserDto>>> GetUser(Guid id, CancellationToken cancellationToken)
+        public async Task<ActionResult<ApiResponse<UserDto>>> GetUserById(
+            Guid id,
+            CancellationToken cancellationToken)
         {
             try
             {
@@ -61,14 +66,14 @@ namespace UserService.API.Controllers
             }
         }
 
-        [HttpPut("profile")]
-        public async Task<ActionResult<ApiResponse<UserDto>>> UpdateProfile(
+        [HttpPut("me")]
+        public async Task<ActionResult<ApiResponse<UserDto>>> UpdateCurrentUser(
             [FromBody] UpdateProfileRequest request,
             CancellationToken cancellationToken)
         {
             try
             {
-                var userId = GetCurrentUserId();
+                var userId = User.GetUserId();
                 await _userService.UpdateUserProfileAsync(
                     userId,
                     request.FirstName,
@@ -87,14 +92,14 @@ namespace UserService.API.Controllers
             }
         }
 
-        [HttpPut("change-password")]
-        public async Task<ActionResult<ApiResponse>> ChangePassword(
+        [HttpPut("me/password")]
+        public async Task<ActionResult<ApiResponse>> UpdatePassword(
             [FromBody] ChangePasswordRequest request,
             CancellationToken cancellationToken)
         {
             try
             {
-                var userId = GetCurrentUserId();
+                var userId = User.GetUserId();
                 await _userService.ChangePasswordAsync(
                     userId,
                     request.CurrentPassword,
@@ -109,46 +114,25 @@ namespace UserService.API.Controllers
             }
         }
 
-        [HttpGet]
-        [Authorize(Roles = "Admin,Moderator")]
-        public async Task<ActionResult<ApiResponse<List<UserDto>>>> GetUsers(
-            [FromQuery] string? role,
+        [HttpPatch("{id:guid}/status")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<ApiResponse>> UpdateUserStatus(
+            Guid id,
+            [FromBody] UpdateUserStatusRequest request,
             CancellationToken cancellationToken)
         {
             try
             {
-                IEnumerable<User> users;
-
-                if (!string.IsNullOrEmpty(role))
+                if (request.IsActive)
                 {
-                    users = await _userService.GetUsersByRoleAsync(role, cancellationToken);
+                    await _userService.ActivateUserAsync(id, cancellationToken);
+                    return Ok(new ApiResponse { Message = "User activated successfully" });
                 }
                 else
                 {
-                    users = await _userService.GetUsersByRoleAsync("User", cancellationToken);
-                    var admins = await _userService.GetUsersByRoleAsync("Admin", cancellationToken);
-                    var moderators = await _userService.GetUsersByRoleAsync("Moderator", cancellationToken);
-
-                    users = users.Concat(admins).Concat(moderators);
+                    await _userService.DeactivateUserAsync(id, cancellationToken);
+                    return Ok(new ApiResponse { Message = "User deactivated successfully" });
                 }
-
-                var userDtos = users.Select(_mapper.Map<UserDto>).ToList();
-                return Ok(new ApiResponse<List<UserDto>> { Data = userDtos });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new ApiResponse<List<UserDto>> { Success = false, Error = ex.Message });
-            }
-        }
-
-        [HttpPatch("{id:guid}/deactivate")]
-        [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<ApiResponse>> DeactivateUser(Guid id, CancellationToken cancellationToken)
-        {
-            try
-            {
-                await _userService.DeactivateUserAsync(id, cancellationToken);
-                return Ok(new ApiResponse { Message = "User deactivated successfully" });
             }
             catch (Exception ex)
             {
@@ -156,45 +140,20 @@ namespace UserService.API.Controllers
             }
         }
 
-        [HttpPatch("{id:guid}/activate")]
-        [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<ApiResponse>> ActivateUser(Guid id, CancellationToken cancellationToken)
-        {
-            try
-            {
-                await _userService.ActivateUserAsync(id, cancellationToken);
-                return Ok(new ApiResponse { Message = "User activated successfully" });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new ApiResponse { Success = false, Error = ex.Message });
-            }
-        }
-
-        [HttpGet("check-email")]
-        public async Task<ActionResult<ApiResponse<bool>>> CheckEmailExists(
+        [HttpGet("validation/email")]
+        public async Task<ActionResult<ApiResponse<bool>>> CheckEmailAvailability(
             [FromQuery] string email,
             CancellationToken cancellationToken)
         {
             try
             {
-                var isUnique = await _userService.IsEmailUniqueAsync(email, cancellationToken);
-                return Ok(new ApiResponse<bool> { Data = isUnique });
+                var isAvailable = await _userService.IsEmailUniqueAsync(email, cancellationToken);
+                return Ok(new ApiResponse<bool> { Data = isAvailable });
             }
             catch (Exception ex)
             {
                 return BadRequest(new ApiResponse<bool> { Success = false, Error = ex.Message });
             }
         }
-
-        private Guid GetCurrentUserId()
-        {
-            var userIdClaim = User.FindFirst("uid")?.Value;
-            if (string.IsNullOrEmpty(userIdClaim))
-                throw new UnauthorizedAccessException("User ID not found in token");
-
-            return Guid.Parse(userIdClaim);
-        }
     }
-
 }

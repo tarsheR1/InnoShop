@@ -1,10 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
-using UserService.API.Dto;
-using UserService.Application.Dto.User;
+using UserService.API.Dto.Auth;
+using UserService.API.Dto.Common;
+using UserService.API.Extensions;
+using UserService.Application.Dto.UserDto;
 using UserService.Application.Interfaces;
-using UserService.Domain.Entities;
 using UserService.Domain.Interfaces.Services;
 
 namespace UserService.API.Controllers
@@ -22,7 +22,7 @@ namespace UserService.API.Controllers
             _userService = userService;
         }
 
-        [HttpPost("login")]
+        [HttpPost("tokens")]
         public async Task<ActionResult<ApiResponse<AuthResponse>>> Login(
             [FromBody] LoginRequest request,
             CancellationToken cancellationToken)
@@ -31,7 +31,7 @@ namespace UserService.API.Controllers
             {
                 var result = await _authService.AuthenticateAsync(request.Username, request.Password, cancellationToken);
 
-                if (!result.Success)
+                if (!result.Result)
                     return BadRequest(new ApiResponse<AuthResponse>
                     {
                         Success = false,
@@ -46,7 +46,6 @@ namespace UserService.API.Controllers
                     User = new UserDto
                     {
                         Id = result.User!.Id,
-                        Username = result.User.Username,
                         Email = result.User.Email,
                         FirstName = result.User.FirstName,
                         LastName = result.User.LastName,
@@ -67,7 +66,7 @@ namespace UserService.API.Controllers
             }
         }
 
-        [HttpPost("register")]
+        [HttpPost("users")]
         public async Task<ActionResult<ApiResponse<UserDto>>> Register(
             [FromBody] RegisterRequest request,
             CancellationToken cancellationToken)
@@ -75,7 +74,6 @@ namespace UserService.API.Controllers
             try
             {
                 var user = await _userService.RegisterUserAsync(
-                    request.Username,
                     request.Email,
                     request.Password,
                     request.FirstName,
@@ -85,7 +83,6 @@ namespace UserService.API.Controllers
                 var userDto = new UserDto
                 {
                     Id = user.Id,
-                    Username = user.Username,
                     Email = user.Email,
                     FirstName = user.FirstName,
                     LastName = user.LastName,
@@ -105,7 +102,7 @@ namespace UserService.API.Controllers
             }
         }
 
-        [HttpPost("refresh")]
+        [HttpPut("tokens")]
         public async Task<ActionResult<ApiResponse<AuthResponse>>> Refresh(
             [FromBody] RefreshTokenRequest request,
             CancellationToken cancellationToken)
@@ -114,7 +111,7 @@ namespace UserService.API.Controllers
             {
                 var result = await _authService.RefreshTokenAsync(request.AccessToken, request.RefreshToken, cancellationToken);
 
-                if (!result.Success())
+                if (!result.Result)
                     return BadRequest(new ApiResponse<AuthResponse>
                     {
                         Success = false,
@@ -129,7 +126,6 @@ namespace UserService.API.Controllers
                     User = new UserDto
                     {
                         Id = result.User!.Id,
-                        Username = result.User.Username,
                         Email = result.User.Email,
                         FirstName = result.User.FirstName,
                         LastName = result.User.LastName,
@@ -150,7 +146,7 @@ namespace UserService.API.Controllers
             }
         }
 
-        [HttpPost("revoke")]
+        [HttpDelete("tokens")]
         [Authorize]
         public async Task<ActionResult<ApiResponse>> Revoke(
             [FromBody] RevokeTokenRequest request,
@@ -167,13 +163,13 @@ namespace UserService.API.Controllers
             }
         }
 
-        [HttpPost("logout")]
+        [HttpPost("tokens/all")]
         [Authorize]
         public async Task<ActionResult<ApiResponse>> Logout(CancellationToken cancellationToken)
         {
             try
             {
-                var userId = GetCurrentUserId();
+                var userId = User.GetUserId();
                 await _authService.RevokeAllUserTokensAsync(userId, cancellationToken);
                 return Ok(new ApiResponse { Message = "Logged out successfully" });
             }
@@ -181,15 +177,6 @@ namespace UserService.API.Controllers
             {
                 return BadRequest(new ApiResponse { Success = false, Error = ex.Message });
             }
-        }
-
-        private Guid GetCurrentUserId()
-        {
-            var userIdClaim = User.FindFirst("uid")?.Value;
-            if (string.IsNullOrEmpty(userIdClaim))
-                throw new UnauthorizedAccessException("User ID not found in token");
-
-            return Guid.Parse(userIdClaim);
         }
     }
 }

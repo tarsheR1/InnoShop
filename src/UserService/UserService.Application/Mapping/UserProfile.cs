@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using UserService.Application.Dto.User;
+using UserService.Application.Dto.UserDto;
 using UserService.Domain.Entities;
 
 namespace UserService.Application.Mapping

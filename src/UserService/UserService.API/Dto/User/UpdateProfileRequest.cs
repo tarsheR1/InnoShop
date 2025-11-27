@@ -1,6 +1,6 @@
-﻿namespace UserService.Application.Dto.User
+﻿namespace UserService.API.Dto.User
 {
-    public class UpdateUserDto
+    public class UpdateProfileRequest
     {
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
