@@ -9,6 +9,6 @@ namespace UserService.Domain.Interfaces.Services
         Task<bool> UserHasRoleAsync(Guid userId, string roleName, CancellationToken cancellationToken);
         Task<bool> AssignRoleToUserAsync(Guid userId, string roleName, CancellationToken cancellationToken);
         Task<bool> RemoveRoleFromUserAsync(Guid userId, string roleName, CancellationToken cancellationToken);
-        Task<string[]> GetUserRolesAsync(Guid userId, CancellationToken cancellationToken);
+        Task<List<Role>> GetUserRolesAsync(Guid userId, CancellationToken cancellationToken);
     }
 }

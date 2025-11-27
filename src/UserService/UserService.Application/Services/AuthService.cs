@@ -1,4 +1,5 @@
-﻿using UserService.Application.Interfaces;
+﻿using UserService.Application.Dto.Auth;
+using UserService.Application.Interfaces;
 using UserService.Domain.Entities;
 using UserService.Domain.Interfaces;
 using UserService.Domain.Interfaces.Services;
