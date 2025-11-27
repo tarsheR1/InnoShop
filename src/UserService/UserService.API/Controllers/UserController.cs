@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using UserService.API.Dto.Common;
 using UserService.API.Dto.User;
 using UserService.API.Extensions;
-using UserService.Application.Dto.UserDto;
+using UserService.Application.Models.Dto.UserDto;
 using UserService.Domain.Entities;
 using UserService.Domain.Interfaces.Services;
 

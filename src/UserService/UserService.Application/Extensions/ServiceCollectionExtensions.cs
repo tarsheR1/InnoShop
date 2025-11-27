@@ -1,5 +1,8 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using UserService.Application.Interfaces;
+using UserService.Application.Models.Settings;
 using UserService.Application.Services;
 using UserService.Domain.Interfaces.Services;
 

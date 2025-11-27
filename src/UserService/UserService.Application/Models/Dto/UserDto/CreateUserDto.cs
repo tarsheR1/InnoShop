@@ -1,4 +1,4 @@
-﻿namespace UserService.Application.Dto.UserDto
+﻿namespace UserService.Application.Models.Dto.UserDto
 {
     public class CreateUserDto
     {

@@ -1,4 +1,4 @@
-﻿using UserService.Application.Dto.UserDto;
+﻿using UserService.Application.Models.Dto.UserDto;
 
 namespace UserService.API.Dto.Auth
 {

@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using UserService.API.Dto.Auth;
 using UserService.API.Dto.Common;
 using UserService.API.Extensions;
-using UserService.Application.Dto.UserDto;
 using UserService.Application.Interfaces;
+using UserService.Application.Models.Dto.UserDto;
 using UserService.Domain.Interfaces.Services;
 
 namespace UserService.API.Controllers

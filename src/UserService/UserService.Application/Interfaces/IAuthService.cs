@@ -1,4 +1,4 @@
-﻿using UserService.Application.Dto.Auth;
+﻿using UserService.Application.Models.Dto.Auth;
 
 namespace UserService.Application.Interfaces
 {

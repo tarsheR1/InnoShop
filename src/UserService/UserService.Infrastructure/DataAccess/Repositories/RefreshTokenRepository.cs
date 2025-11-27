@@ -15,71 +15,46 @@ namespace UserService.Infrastructure.DataAccess.Repositories
             return await _dbSet
                 .Include(rt => rt.User)
                 .ThenInclude(u => u.Role)
-                .FirstOrDefaultAsync(rt => rt.Token == token && !rt.IsRevoked, cancellationToken);
+                .FirstOrDefaultAsync(rt => rt.Token == token, cancellationToken);
         }
 
         public async Task<RefreshToken?> GetByJwtIdAsync(string jwtId, CancellationToken cancellationToken)
         {
             return await _dbSet
                 .Include(rt => rt.User)
-                .FirstOrDefaultAsync(rt => rt.JwtId == jwtId && !rt.IsRevoked, cancellationToken);
+                .ThenInclude(u => u.Role)
+                .FirstOrDefaultAsync(rt => rt.JwtId == jwtId, cancellationToken);
         }
 
         public async Task<IEnumerable<RefreshToken>> GetUserTokensAsync(Guid userId, CancellationToken cancellationToken)
         {
             return await _dbSet
                 .Where(rt => rt.UserId == userId)
-                .AsNoTracking()
                 .ToListAsync(cancellationToken);
         }
 
-        public async Task RevokeUserTokensAsync(Guid userId, CancellationToken cancellationToken)
+        public async Task<IEnumerable<RefreshToken>> GetActiveUserTokensAsync(Guid userId, CancellationToken cancellationToken)
         {
-            var tokens = await _dbSet
-                .Where(rt => rt.UserId == userId && !rt.IsRevoked)
+            return await _dbSet
+                .Where(rt => rt.UserId == userId && !rt.IsRevoked && rt.ExpiresAt > DateTime.UtcNow)
                 .ToListAsync(cancellationToken);
-
-            foreach (var token in tokens)
-            {
-                token.IsRevoked = true;
-                token.RevokedAt = DateTime.UtcNow;
-                _dbSet.Update(token);
-            }
         }
 
-        public async Task RevokeTokenAsync(string token, CancellationToken cancellationToken)
+        public async Task<IEnumerable<RefreshToken>> GetExpiredTokensAsync(CancellationToken cancellationToken)
         {
-            var refreshToken = await _dbSet
-                .FirstOrDefaultAsync(rt => rt.Token == token && !rt.IsRevoked, cancellationToken);
-
-            if (refreshToken != null)
-            {
-                refreshToken.IsRevoked = true;
-                refreshToken.RevokedAt = DateTime.UtcNow;
-                _dbSet.Update(refreshToken);
-            }
-        }
-
-        public async Task<bool> IsTokenValidAsync(string token, CancellationToken cancellationToken)
-        {
-            var refreshToken = await _dbSet
-                .FirstOrDefaultAsync(rt => rt.Token == token, cancellationToken);
-
-            return refreshToken != null &&
-                   !refreshToken.IsRevoked &&
-                   refreshToken.ExpiresAt > DateTime.UtcNow;
-        }
-
-        public async Task CleanExpiredTokensAsync(CancellationToken cancellationToken)
-        {
-            var expiredTokens = await _dbSet
+            return await _dbSet
                 .Where(rt => rt.ExpiresAt <= DateTime.UtcNow || rt.IsRevoked)
                 .ToListAsync(cancellationToken);
+        }
 
-            if (expiredTokens.Any())
-            {
-                _dbSet.RemoveRange(expiredTokens);
-            }
+        public async Task<bool> ExistsValidTokenAsync(string token, CancellationToken cancellationToken)
+        {
+            return await _dbSet
+                .AnyAsync(rt =>
+                    rt.Token == token &&
+                    !rt.IsRevoked &&
+                    rt.ExpiresAt > DateTime.UtcNow,
+                    cancellationToken);
         }
 
         public async Task<RefreshToken?> GetValidTokenAsync(string token, CancellationToken cancellationToken)
@@ -87,8 +62,9 @@ namespace UserService.Infrastructure.DataAccess.Repositories
             return await _dbSet
                 .Include(rt => rt.User)
                 .ThenInclude(u => u.Role)
+                .AsNoTracking()
                 .FirstOrDefaultAsync(rt =>
-                    rt.Token == token &&
+                 rt.Token == token &&
                     !rt.IsRevoked &&
                     rt.ExpiresAt > DateTime.UtcNow,
                     cancellationToken);
@@ -97,11 +73,18 @@ namespace UserService.Infrastructure.DataAccess.Repositories
         public async Task<int> GetActiveTokensCountAsync(Guid userId, CancellationToken cancellationToken)
         {
             return await _dbSet
+                .AsNoTracking()
                 .CountAsync(rt =>
                     rt.UserId == userId &&
                     !rt.IsRevoked &&
                     rt.ExpiresAt > DateTime.UtcNow,
                     cancellationToken);
+        }
+
+        public async Task DeleteRangeAsync(IEnumerable<RefreshToken> tokens, CancellationToken cancellationToken)
+        {
+            _dbSet.RemoveRange(tokens);
+            await _context.SaveChangesAsync(cancellationToken);
         }
     }
 }

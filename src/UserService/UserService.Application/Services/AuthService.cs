@@ -1,5 +1,5 @@
-﻿using UserService.Application.Dto.Auth;
-using UserService.Application.Interfaces;
+﻿using UserService.Application.Interfaces;
+using UserService.Application.Models.Dto.Auth;
 using UserService.Domain.Entities;
 using UserService.Domain.Interfaces;
 using UserService.Domain.Interfaces.Services;
@@ -66,7 +66,12 @@ namespace UserService.Application.Services
 
         public async Task RevokeAllUserTokensAsync(Guid userId, CancellationToken cancellationToken)
         {
-            await _unitOfWork.RefreshTokens.RevokeUserTokensAsync(userId, cancellationToken);
+            var tokens = await _unitOfWork.RefreshTokens.GetActiveUserTokensAsync(userId, cancellationToken);
+            foreach (var token in tokens) 
+            {
+                token.IsRevoked = true;
+                token.RevokedAt = DateTime.UtcNow;
+            }
             await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
 

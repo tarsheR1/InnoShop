@@ -1,6 +1,6 @@
 ﻿using UserService.Domain.Entities;
 
-namespace UserService.Application.Dto.Auth
+namespace UserService.Application.Models.Dto.Auth
 {
     public class AuthenticationResult
     {
