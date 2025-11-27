@@ -1,6 +1,8 @@
-﻿namespace UserService.Application.Services
+﻿namespace UserService.Application.Interfaces
 {
     public interface IPasswordHasher
     {
+        string HashPassword(string password);
+        bool VerifyPassword(string hashedPassword, string providedPassword);
     }
 }

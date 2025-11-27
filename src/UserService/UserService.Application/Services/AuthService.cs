@@ -18,9 +18,9 @@ namespace UserService.Application.Services
             _passwordHasher = passwordHasher;
         }
 
-        public async Task<AuthenticationResult> AuthenticateAsync(string username, string password, CancellationToken cancellationToken)
+        public async Task<AuthenticationResult> AuthenticateAsync(string email, string password, CancellationToken cancellationToken)
         {
-            var user = await _unitOfWork.Users.GetByUsernameAsync(username, cancellationToken);
+            var user = await _unitOfWork.Users.GetByEmailAsync(email, cancellationToken);
 
             if (user == null || !user.IsActive)
                 return AuthenticationResult.Failure("Invalid credentials");
@@ -28,12 +28,10 @@ namespace UserService.Application.Services
             if (!_passwordHasher.VerifyPassword(user.PasswordHash, password))
                 return AuthenticationResult.Failure("Invalid credentials");
 
-            // Обновляем время последнего входа
             await _unitOfWork.Users.UpdateLastLoginAsync(user.Id, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            // Генерируем токены
-            var accessToken = _tokenService.GenerateAccessToken(user);
+            var accessToken = _tokenService.GenerateAccessToken(user, cancellationToken);
             var refreshToken = await _tokenService.GenerateAndSaveRefreshTokenAsync(user.Id, cancellationToken);
 
             return AuthenticationResult.Success(accessToken, refreshToken, user);
@@ -41,7 +39,7 @@ namespace UserService.Application.Services
 
         public async Task<AuthenticationResult> RefreshTokenAsync(string accessToken, string refreshToken, CancellationToken cancellationToken)
         {
-            var principal = _tokenService.GetPrincipalFromExpiredToken(accessToken);
+            var principal = _tokenService.GetPrincipalFromExpiredToken(accessToken, cancellationToken);
             var userId = Guid.Parse(principal.FindFirst("uid")?.Value ?? throw new InvalidOperationException("Invalid token"));
 
             var user = await _unitOfWork.Users.GetByIdAsync(userId, cancellationToken);
@@ -52,11 +50,9 @@ namespace UserService.Application.Services
             if (!isValid)
                 return AuthenticationResult.Failure("Invalid refresh token");
 
-            // Отзываем старый refresh token
             await _tokenService.RevokeRefreshTokenAsync(refreshToken, cancellationToken);
 
-            // Генерируем новые токены
-            var newAccessToken = _tokenService.GenerateAccessToken(user);
+            var newAccessToken = _tokenService.GenerateAccessToken(user, cancellationToken);
             var newRefreshToken = await _tokenService.GenerateAndSaveRefreshTokenAsync(user.Id, cancellationToken);
 
             return AuthenticationResult.Success(newAccessToken, newRefreshToken, user);
@@ -73,39 +69,9 @@ namespace UserService.Application.Services
             await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task<bool> ValidateTokenAsync(string token, CancellationToken cancellationToken)
+        public async Task<bool> ValidateTokenAsync(string token, Guid userId, CancellationToken cancellationToken)
         {
-            return _tokenService.ValidateToken(token);
-        }
-    }
-
-    public class AuthenticationResult
-    {
-        public bool Success { get; }
-        public string? AccessToken { get; }
-        public string? RefreshToken { get; }
-        public DateTime? ExpiresAt { get; }
-        public string? ErrorMessage { get; }
-        public User? User { get; }
-
-        private AuthenticationResult(bool success, string? accessToken, string? refreshToken, DateTime? expiresAt, string? errorMessage, User? user)
-        {
-            Success = success;
-            AccessToken = accessToken;
-            RefreshToken = refreshToken;
-            ExpiresAt = expiresAt;
-            ErrorMessage = errorMessage;
-            User = user;
-        }
-
-        public static AuthenticationResult Success(string accessToken, string refreshToken, User user)
-        {
-            return new AuthenticationResult(true, accessToken, refreshToken, DateTime.UtcNow.AddHours(1), null, user);
-        }
-
-        public static AuthenticationResult Failure(string errorMessage)
-        {
-            return new AuthenticationResult(false, null, null, null, errorMessage, null);
+            return await _tokenService.ValidateRefreshTokenAsync(userId, token, cancellationToken);
         }
     }
 }

@@ -6,7 +6,6 @@ namespace UserService.Domain.Interfaces.Services
     {
         Task<User> RegisterUserAsync(string email, string password, string? firstName, string? lastName, CancellationToken cancellationToken);
         Task<User?> GetUserByIdAsync(Guid userId, CancellationToken cancellationToken);
-        Task<User?> GetUserByUsernameAsync(string username, CancellationToken cancellationToken);
         Task<User?> GetUserByEmailAsync(string email, CancellationToken cancellationToken);
         Task UpdateUserProfileAsync(Guid userId, string? firstName, string? lastName, string? email, CancellationToken cancellationToken);
         Task ChangePasswordAsync(Guid userId, string currentPassword, string newPassword, CancellationToken cancellationToken);
@@ -14,6 +13,5 @@ namespace UserService.Domain.Interfaces.Services
         Task ActivateUserAsync(Guid userId, CancellationToken cancellationToken);
         Task<IEnumerable<User>> GetUsersByRoleAsync(string roleName, CancellationToken cancellationToken);
         Task<bool> IsEmailUniqueAsync(string email, CancellationToken cancellationToken);
-        Task<bool> IsUsernameUniqueAsync(string username, CancellationToken cancellationToken);
     }
 }
