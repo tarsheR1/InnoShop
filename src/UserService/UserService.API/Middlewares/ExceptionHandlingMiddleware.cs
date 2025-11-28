@@ -6,16 +6,13 @@ namespace UserService.API.Middlewares
     public class ExceptionHandlingMiddleware
     {
         private readonly RequestDelegate _next;
-        private readonly ILogger<ExceptionHandlingMiddleware> _logger;
         private readonly IHostEnvironment _env;
 
         public ExceptionHandlingMiddleware(
             RequestDelegate next,
-            ILogger<ExceptionHandlingMiddleware> logger,
             IHostEnvironment env)
         {
             _next = next;
-            _logger = logger;
             _env = env;
         }
 
@@ -27,7 +24,6 @@ namespace UserService.API.Middlewares
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An unhandled exception occurred");
                 await HandleExceptionAsync(context, ex);
             }
         }

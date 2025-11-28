@@ -32,7 +32,7 @@ namespace UserService.Application.Services
                 FirstName = firstName,
                 LastName = lastName,
                 RoleId = defaultRole.Id,
-                IsActive = true,
+                IsActive = false, // До тех пора пока почта не подтверждена
                 EmailConfirmed = false,
                 CreatedAt = DateTime.UtcNow
             };
