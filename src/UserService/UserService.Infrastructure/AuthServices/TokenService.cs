@@ -1,9 +1,11 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using UserService.Application.Models.Settings;
 using UserService.Domain.Entities;
 using UserService.Domain.Interfaces;
 using UserService.Domain.Interfaces.Services;
@@ -13,26 +15,25 @@ namespace UserService.Infrastructure.AuthServices
     public class TokenService : ITokenService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly string _secretKey;
-        private readonly string _issuer;
-        private readonly string _audience;
-        private readonly int _accessTokenExpiryMinutes;
-        private readonly int _refreshTokenExpiryDays;
+        private readonly JwtSettings _jwtSettings;
 
-        public TokenService(IUnitOfWork unitOfWork, IConfiguration configuration)
+        public TokenService(IUnitOfWork unitOfWork, IOptions<JwtSettings> jwtOptions)
         {
             _unitOfWork = unitOfWork;
-            _secretKey = configuration["Jwt:SecretKey"] ?? throw new InvalidOperationException("JWT SecretKey is not configured");
-            _issuer = configuration["Jwt:Issuer"] ?? throw new InvalidOperationException("JWT Issuer is not configured");
-            _audience = configuration["Jwt:Audience"] ?? throw new InvalidOperationException("JWT Audience is not configured");
-            _accessTokenExpiryMinutes = int.Parse(configuration["Jwt:AccessTokenExpiryMinutes"] ?? "60");
-            _refreshTokenExpiryDays = int.Parse(configuration["Jwt:RefreshTokenExpiryDays"] ?? "7");
+            _jwtSettings = jwtOptions.Value;
+
+            if (string.IsNullOrEmpty(_jwtSettings.Secret))
+                throw new InvalidOperationException("JWT SecretKey is not configured");
+
+            if (_jwtSettings.Secret.Length < 32)
+                throw new InvalidOperationException("JWT SecretKey must be at least 32 characters long");
         }
+
 
         public string GenerateAccessToken(User user, CancellationToken cancellationToken)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_secretKey);
+            var key = Encoding.ASCII.GetBytes(_jwtSettings.Secret);
 
             var claims = new[]
             {
@@ -45,9 +46,9 @@ namespace UserService.Infrastructure.AuthServices
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddMinutes(_accessTokenExpiryMinutes),
-                Issuer = _issuer,
-                Audience = _audience,
+                Expires = DateTime.UtcNow.AddMinutes(_jwtSettings.AccessTokenExpirationMinutes),
+                Issuer = _jwtSettings.Issuer,
+                Audience = _jwtSettings.Audience,
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
 
@@ -72,7 +73,7 @@ namespace UserService.Infrastructure.AuthServices
                 JwtId = Guid.NewGuid().ToString(),
                 UserId = userId,
                 CreatedAt = DateTime.UtcNow,
-                ExpiresAt = DateTime.UtcNow.AddDays(_refreshTokenExpiryDays),
+                ExpiresAt = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationDays),
                 IsUsed = false,
                 IsRevoked = false
             };
@@ -95,13 +96,16 @@ namespace UserService.Infrastructure.AuthServices
 
         public async Task RevokeRefreshTokenAsync(string refreshToken, CancellationToken cancellationToken)
         {
-            await _unitOfWork.RefreshTokens.RevokeTokenAsync(refreshToken, cancellationToken);
+            var token = await _unitOfWork.RefreshTokens.GetByTokenAsync(refreshToken, cancellationToken);
+            token.RevokedAt = DateTime.UtcNow;
+            token.IsRevoked = true;
             await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
 
         public async Task CleanExpiredRefreshTokensAsync(CancellationToken cancellationToken)
         {
-            await _unitOfWork.RefreshTokens.CleanExpiredTokensAsync(cancellationToken);
+            var tokens = await _unitOfWork.RefreshTokens.GetExpiredTokensAsync(cancellationToken);
+            await _unitOfWork.RefreshTokens.DeleteRangeAsync(tokens, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
 
@@ -110,16 +114,16 @@ namespace UserService.Infrastructure.AuthServices
             try
             {
                 var tokenHandler = new JwtSecurityTokenHandler();
-                var key = Encoding.ASCII.GetBytes(_secretKey);
+                var key = Encoding.ASCII.GetBytes(_jwtSettings.Secret);
 
                 tokenHandler.ValidateToken(token, new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(key),
                     ValidateIssuer = true,
-                    ValidIssuer = _issuer,
+                    ValidIssuer = _jwtSettings.Issuer,
                     ValidateAudience = true,
-                    ValidAudience = _audience,
+                    ValidAudience = _jwtSettings.Audience,
                     ValidateLifetime = true,
                     ClockSkew = TimeSpan.Zero
                 }, out _);
@@ -135,16 +139,16 @@ namespace UserService.Infrastructure.AuthServices
         public ClaimsPrincipal GetPrincipalFromExpiredToken(string token, CancellationToken cancellationToken)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_secretKey);
+            var key = Encoding.ASCII.GetBytes(_jwtSettings.Secret);
 
             var principal = tokenHandler.ValidateToken(token, new TokenValidationParameters
             {
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = new SymmetricSecurityKey(key),
                 ValidateIssuer = true,
-                ValidIssuer = _issuer,
+                ValidIssuer = _jwtSettings.Issuer,
                 ValidateAudience = true,
-                ValidAudience = _audience,
+                ValidAudience = _jwtSettings.Audience,
                 ValidateLifetime = false, 
                 ClockSkew = TimeSpan.Zero
             }, out var securityToken);

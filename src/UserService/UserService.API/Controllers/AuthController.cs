@@ -29,7 +29,7 @@ namespace UserService.API.Controllers
         {
             try
             {
-                var result = await _authService.AuthenticateAsync(request.Username, request.Password, cancellationToken);
+                var result = await _authService.AuthenticateAsync(request.Email, request.Password, cancellationToken);
 
                 if (!result.Result)
                     return BadRequest(new ApiResponse<AuthResponse>
