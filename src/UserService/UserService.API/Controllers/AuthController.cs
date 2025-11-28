@@ -27,43 +27,32 @@ namespace UserService.API.Controllers
             [FromBody] LoginRequest request,
             CancellationToken cancellationToken)
         {
-            try
-            {
-                var result = await _authService.AuthenticateAsync(request.Email, request.Password, cancellationToken);
+            var result = await _authService.AuthenticateAsync(request.Email, request.Password, cancellationToken);
 
-                if (!result.Result)
-                    return BadRequest(new ApiResponse<AuthResponse>
-                    {
-                        Success = false,
-                        Error = result.ErrorMessage
-                    });
-
-                var authResponse = new AuthResponse
-                {
-                    AccessToken = result.AccessToken!,
-                    RefreshToken = result.RefreshToken!,
-                    ExpiresAt = result.ExpiresAt!.Value,
-                    User = new UserDto
-                    {
-                        Id = result.User!.Id,
-                        Email = result.User.Email,
-                        FirstName = result.User.FirstName,
-                        LastName = result.User.LastName,
-                        Role = result.User.Role.Name,
-                        CreatedAt = result.User.CreatedAt
-                    }
-                };
-
-                return Ok(new ApiResponse<AuthResponse> { Data = authResponse });
-            }
-            catch (Exception ex)
-            {
+            if (!result.Result)
                 return BadRequest(new ApiResponse<AuthResponse>
                 {
                     Success = false,
-                    Error = ex.Message
+                    Error = result.ErrorMessage
                 });
-            }
+
+            var authResponse = new AuthResponse
+            {
+                AccessToken = result.AccessToken!,
+                RefreshToken = result.RefreshToken!,
+                ExpiresAt = result.ExpiresAt!.Value,
+                User = new UserDto
+                {
+                    Id = result.User!.Id,
+                    Email = result.User.Email,
+                    FirstName = result.User.FirstName,
+                    LastName = result.User.LastName,
+                    Role = result.User.Role.Name,
+                    CreatedAt = result.User.CreatedAt
+                }
+            };
+
+            return Ok(new ApiResponse<AuthResponse> { Data = authResponse });
         }
 
         [HttpPost("users")]
@@ -71,35 +60,24 @@ namespace UserService.API.Controllers
             [FromBody] RegisterRequest request,
             CancellationToken cancellationToken)
         {
-            try
-            {
-                var user = await _userService.RegisterUserAsync(
-                    request.Email,
-                    request.Password,
-                    request.FirstName,
-                    request.LastName,
-                    cancellationToken);
+            var user = await _userService.RegisterUserAsync(
+                request.Email,
+                request.Password,
+                request.FirstName,
+                request.LastName,
+                cancellationToken);
 
-                var userDto = new UserDto
-                {
-                    Id = user.Id,
-                    Email = user.Email,
-                    FirstName = user.FirstName,
-                    LastName = user.LastName,
-                    Role = user.Role.Name,
-                    CreatedAt = user.CreatedAt
-                };
-
-                return Ok(new ApiResponse<UserDto> { Data = userDto });
-            }
-            catch (Exception ex)
+            var userDto = new UserDto
             {
-                return BadRequest(new ApiResponse<UserDto>
-                {
-                    Success = false,
-                    Error = ex.Message
-                });
-            }
+                Id = user.Id,
+                Email = user.Email,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Role = user.Role.Name,
+                CreatedAt = user.CreatedAt
+            };
+
+            return Ok(new ApiResponse<UserDto> { Data = userDto });
         }
 
         [HttpPut("tokens")]
@@ -107,43 +85,32 @@ namespace UserService.API.Controllers
             [FromBody] RefreshTokenRequest request,
             CancellationToken cancellationToken)
         {
-            try
-            {
-                var result = await _authService.RefreshTokenAsync(request.AccessToken, request.RefreshToken, cancellationToken);
+            var result = await _authService.RefreshTokenAsync(request.AccessToken, request.RefreshToken, cancellationToken);
 
-                if (!result.Result)
-                    return BadRequest(new ApiResponse<AuthResponse>
-                    {
-                        Success = false,
-                        Error = result.ErrorMessage
-                    });
-
-                var authResponse = new AuthResponse
-                {
-                    AccessToken = result.AccessToken!,
-                    RefreshToken = result.RefreshToken!,
-                    ExpiresAt = result.ExpiresAt!.Value,
-                    User = new UserDto
-                    {
-                        Id = result.User!.Id,
-                        Email = result.User.Email,
-                        FirstName = result.User.FirstName,
-                        LastName = result.User.LastName,
-                        Role = result.User.Role.Name,
-                        CreatedAt = result.User.CreatedAt
-                    }
-                };
-
-                return Ok(new ApiResponse<AuthResponse> { Data = authResponse });
-            }
-            catch (Exception ex)
-            {
+            if (!result.Result)
                 return BadRequest(new ApiResponse<AuthResponse>
                 {
                     Success = false,
-                    Error = ex.Message
+                    Error = result.ErrorMessage
                 });
-            }
+
+            var authResponse = new AuthResponse
+            {
+                AccessToken = result.AccessToken!,
+                RefreshToken = result.RefreshToken!,
+                ExpiresAt = result.ExpiresAt!.Value,
+                User = new UserDto
+                {
+                    Id = result.User!.Id,
+                    Email = result.User.Email,
+                    FirstName = result.User.FirstName,
+                    LastName = result.User.LastName,
+                    Role = result.User.Role.Name,
+                    CreatedAt = result.User.CreatedAt
+                }
+            };
+
+            return Ok(new ApiResponse<AuthResponse> { Data = authResponse });
         }
 
         [HttpDelete("tokens")]
@@ -152,31 +119,17 @@ namespace UserService.API.Controllers
             [FromBody] RevokeTokenRequest request,
             CancellationToken cancellationToken)
         {
-            try
-            {
-                await _authService.RevokeTokenAsync(request.RefreshToken, cancellationToken);
-                return Ok(new ApiResponse { Message = "Token revoked successfully" });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new ApiResponse { Success = false, Error = ex.Message });
-            }
+            await _authService.RevokeTokenAsync(request.RefreshToken, cancellationToken);
+            return Ok(new ApiResponse { Message = "Token revoked successfully" });
         }
 
-        [HttpPost("tokens/all")]
+        [HttpDelete("tokens/all")]
         [Authorize]
         public async Task<ActionResult<ApiResponse>> Logout(CancellationToken cancellationToken)
         {
-            try
-            {
-                var userId = User.GetUserId();
-                await _authService.RevokeAllUserTokensAsync(userId, cancellationToken);
-                return Ok(new ApiResponse { Message = "Logged out successfully" });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new ApiResponse { Success = false, Error = ex.Message });
-            }
+            var userId = User.GetUserId();
+            await _authService.RevokeAllUserTokensAsync(userId, cancellationToken);
+            return Ok(new ApiResponse { Message = "Logged out successfully" });
         }
     }
 }

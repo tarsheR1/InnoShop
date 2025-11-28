@@ -1,3 +1,4 @@
+using UserService.API.Middlewares;
 using UserService.Application.Extensions;
 using UserService.Application.Models.Settings;
 using UserService.Infrastructure.Extensions;
@@ -10,6 +11,7 @@ builder.Services.Configure<JwtSettings>(
 builder.Services.AddDataAccess(builder.Configuration);
 builder.Services.AddInfrastructureServices();
 builder.Services.AddApplicationServices();
+builder.Services.AddValidation();
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -27,6 +29,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseAuthorization();
 
