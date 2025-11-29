@@ -30,6 +30,12 @@ namespace UserService.Infrastructure.DataAccess.Repositories
                 .AsNoTracking()
                 .ToListAsync(cancellationToken);
         }
+        public async Task<User?> GetByPasswordResetTokenAsync(string token, CancellationToken cancellationToken)
+        {
+            return await _dbSet
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.PasswordResetToken == token, cancellationToken);
+        }
 
         public async Task UpdateLastLoginAsync(Guid userId, CancellationToken cancellationToken)
         {

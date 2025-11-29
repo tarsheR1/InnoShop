@@ -30,4 +30,9 @@
     <ProjectReference Include="..\UserService.Infrastructure\UserService.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Dto\Auth\" />
+    <Folder Include="Dto\User\" />
+  </ItemGroup>
+
 </Project>

@@ -18,11 +18,11 @@ namespace UserService.Application.Mapping
                 .ForMember(dest => dest.LastLoginAt,
                     opt => opt.MapFrom(src => src.LastLoginAt));
 
-            CreateMap<User, UserProfileDto>()
+            CreateMap<User, GetUserProfileRequest>()
                 .ForMember(dest => dest.Role,
                     opt => opt.MapFrom(src => src.Role.Name));
 
-            CreateMap<CreateUserDto, User>()
+            CreateMap<CreateUserRequest, User>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
                 .ForMember(dest => dest.PasswordHash, opt => opt.Ignore())
                 .ForMember(dest => dest.Role, opt => opt.Ignore())
@@ -34,7 +34,7 @@ namespace UserService.Application.Mapping
                 .ForMember(dest => dest.LastLoginAt, opt => opt.Ignore())
                 .ForMember(dest => dest.RefreshTokens, opt => opt.Ignore());
 
-            CreateMap<UpdateUserDto, User>()
+            CreateMap<UpdateUserRequest, User>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
                 .ForMember(dest => dest.PasswordHash, opt => opt.Ignore())
                 .ForMember(dest => dest.Role, opt => opt.Ignore())

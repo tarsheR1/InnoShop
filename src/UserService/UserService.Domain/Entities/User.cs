@@ -13,6 +13,10 @@
         public DateTime? UpdatedAt { get; set; }
         public DateTime? LastLoginAt { get; set; }
 
+        public string? EmailConfirmationToken { get; set; }
+        public string? PasswordResetToken { get; set; }
+        public DateTime? PasswordResetTokenExpires { get; set; }
+
         public Guid RoleId { get; set; }
 
         public virtual Role Role { get; set; } = null!;
