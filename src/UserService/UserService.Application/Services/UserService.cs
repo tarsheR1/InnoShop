@@ -9,11 +9,14 @@ namespace UserService.Application.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IPasswordHasher _passwordHasher;
+        private readonly IProductServiceClient _productServiceClient;
 
-        public UserService(IUnitOfWork unitOfWork, IPasswordHasher passwordHasher)
+
+        public UserService(IUnitOfWork unitOfWork, IPasswordHasher passwordHasher, IProductServiceClient productServiceClient)
         {
             _unitOfWork = unitOfWork;
             _passwordHasher = passwordHasher;
+            _productServiceClient = productServiceClient;
         }
 
         public async Task<User> RegisterUserAsync(string email, string password, string? firstName, string? lastName, CancellationToken cancellationToken)
@@ -100,6 +103,9 @@ namespace UserService.Application.Services
 
             user.IsActive = false;
             user.UpdatedAt = DateTime.UtcNow;
+
+            await _productServiceClient.DeactivateUserProductsAsync(userId, cancellationToken);
+
 
             _unitOfWork.Users.Update(user, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
