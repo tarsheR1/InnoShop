@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using UserService.Infrastructure.DataAccess;
 
@@ -11,9 +12,11 @@ using UserService.Infrastructure.DataAccess;
 namespace UserService.Infrastructure.Migrations
 {
     [DbContext(typeof(UsersDbContext))]
-    partial class UsersDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251129002034_UserEntityUpdate")]
+    partial class UserEntityUpdate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -91,6 +94,29 @@ namespace UserService.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Roles");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("583d700d-d7fd-4d09-b5cd-3d22b7a438d8"),
+                            CreatedAt = new DateTime(2025, 11, 29, 0, 20, 30, 754, DateTimeKind.Utc).AddTicks(368),
+                            Description = "Администратор системы",
+                            Name = "Admin"
+                        },
+                        new
+                        {
+                            Id = new Guid("05a30226-d959-412a-96b1-fd76c0c69dec"),
+                            CreatedAt = new DateTime(2025, 11, 29, 0, 20, 30, 754, DateTimeKind.Utc).AddTicks(1822),
+                            Description = "Модератор",
+                            Name = "Moderator"
+                        },
+                        new
+                        {
+                            Id = new Guid("5d9779da-34ab-45a3-9329-1522a8bc15ce"),
+                            CreatedAt = new DateTime(2025, 11, 29, 0, 20, 30, 754, DateTimeKind.Utc).AddTicks(1832),
+                            Description = "Обычный пользователь",
+                            Name = "User"
+                        });
                 });
 
             modelBuilder.Entity("UserService.Domain.Entities.User", b =>

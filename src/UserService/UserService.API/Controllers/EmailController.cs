@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using UserService.API.Dto.Common;
 using UserService.Application.Interfaces;
+using UserService.Application.Models.Dto.Auth;
 using UserService.Domain.Entities;
 using UserService.Domain.Interfaces.Services;
 
@@ -35,11 +36,8 @@ namespace UserService.API.Controllers
             [FromBody] ResetPasswordRequest request,
             CancellationToken cancellationToken)
         {
-            if (request.NewPassword != request.)
-                return BadRequest(new ApiResponse { Success = false, Error = "Пароли не совпадают" });
-
-            var result = await _userService.ResetPasswordAsync(
-                request.Token, request.NewPassword, cancellationToken);
+            var result = await _emailManagementService.ResetPasswordAsync(
+                request.ResetCode, request.NewPassword, cancellationToken);
 
             if (!result)
                 return BadRequest(new ApiResponse { Success = false, Error = "Неверный или просроченный токен" });
@@ -49,10 +47,10 @@ namespace UserService.API.Controllers
 
         [HttpPost("confirm-email")]
         public async Task<ActionResult<ApiResponse>> ConfirmEmail(
-            [FromBody] ConfirmEmailRequest request,
+            [FromBody] ConfirmationEmailRequest request,
             CancellationToken cancellationToken)
         {
-            var result = await _userService.ConfirmEmailAsync(
+            var result = await _emailManagementService.ConfirmEmailAsync(
                 request.Email, request.Token, cancellationToken);
 
             if (!result)
@@ -63,10 +61,10 @@ namespace UserService.API.Controllers
 
         [HttpPost("resend-confirmation")]
         public async Task<ActionResult<ApiResponse>> ResendConfirmation(
-            [FromBody] ResendConfirmationRequest request,
+            [FromBody] ResendConfirmationEmailRequest request,
             CancellationToken cancellationToken)
         {
-            await _userService.ResendEmailConfirmationAsync(request.Email, cancellationToken);
+            await _emailManagementService.ResendEmailConfirmationAsync(request.Email, cancellationToken);
             return Ok(new ApiResponse { Message = "Письмо с подтверждением отправлено" });
         }
 
@@ -75,7 +73,7 @@ namespace UserService.API.Controllers
         public async Task<ActionResult<ApiResponse<bool>>> IsEmailConfirmed(CancellationToken cancellationToken)
         {
             var userId = GetCurrentUserId();
-            var isConfirmed = await _.IsEmailConfirmedAsync(userId, cancellationToken);
+            var isConfirmed = await _emailManagementService.IsEmailConfirmedAsync(userId, cancellationToken);
             return Ok(new ApiResponse<bool> { Data = isConfirmed });
         }
 

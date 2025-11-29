@@ -71,12 +71,6 @@ namespace UserService.Infrastructure.DataAccess
                     .HasForeignKey(e => e.UserId)
                     .OnDelete(DeleteBehavior.Cascade);
             });
-
-            modelBuilder.Entity<Role>().HasData(
-                new Role { Id = Guid.NewGuid(), Name = "Admin", Description = "Администратор системы" },
-                new Role { Id = Guid.NewGuid(), Name = "Moderator", Description = "Модератор" },
-                new Role { Id = Guid.NewGuid(), Name = "User", Description = "Обычный пользователь" }
-            );
         }
     }
 }
