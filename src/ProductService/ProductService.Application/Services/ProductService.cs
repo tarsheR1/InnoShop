@@ -114,5 +114,19 @@ namespace ProductService.Application.Services
 
             return true;
         }
+
+        public async Task<bool> DeleteUserProductsAsync(string userId)
+        {
+            var products = await _unitOfWork.Products.GetByUserIdAsync(userId);
+            if (products == null)
+                return true;
+
+            foreach (var product in products)
+            {
+                product.IsAvailable = false;
+            }
+
+            return true;
+        }
     }
 }
