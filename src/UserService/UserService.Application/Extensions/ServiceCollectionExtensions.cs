@@ -15,7 +15,7 @@ namespace UserService.Application.Extensions
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserService, Services.UserService>();
             services.AddScoped<IRoleService, RoleService>();
-
+            services.AddScoped<IEmailManagementService, EmailManagementService>();
             return services;
         }
     }

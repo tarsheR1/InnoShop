@@ -27,21 +27,15 @@ namespace UserService.API.Controllers
         [HttpGet("me")]
         public async Task<ActionResult<ApiResponse<UserDto>>> GetCurrentUser(CancellationToken cancellationToken)
         {
-            try
-            {
-                var userId = User.GetUserId();
-                var user = await _userService.GetUserByIdAsync(userId, cancellationToken);
 
-                if (user == null)
-                    return NotFound(new ApiResponse<UserDto> { Success = false, Error = "User not found" });
+            var userId = User.GetUserId();
+            var user = await _userService.GetUserByIdAsync(userId, cancellationToken);
 
-                var userDto = _mapper.Map<UserDto>(user);
-                return Ok(new ApiResponse<UserDto> { Data = userDto });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new ApiResponse<UserDto> { Success = false, Error = ex.Message });
-            }
+            if (user == null)
+                return NotFound(new ApiResponse<UserDto> { Success = false, Error = "User not found" });
+
+            var userDto = _mapper.Map<UserDto>(user);
+            return Ok(new ApiResponse<UserDto> { Data = userDto });
         }
 
         [HttpGet("{id:guid}")]
@@ -50,20 +44,15 @@ namespace UserService.API.Controllers
             Guid id,
             CancellationToken cancellationToken)
         {
-            try
-            {
-                var user = await _userService.GetUserByIdAsync(id, cancellationToken);
+ 
+            var user = await _userService.GetUserByIdAsync(id, cancellationToken);
 
-                if (user == null)
-                    return NotFound(new ApiResponse<UserDto> { Success = false, Error = "User not found" });
+            if (user == null)
+                return NotFound(new ApiResponse<UserDto> { Success = false, Error = "User not found" });
 
-                var userDto = _mapper.Map<UserDto>(user);
-                return Ok(new ApiResponse<UserDto> { Data = userDto });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new ApiResponse<UserDto> { Success = false, Error = ex.Message });
-            }
+            var userDto = _mapper.Map<UserDto>(user);
+            return Ok(new ApiResponse<UserDto> { Data = userDto });
+
         }
 
         [HttpPut("me")]
@@ -71,25 +60,19 @@ namespace UserService.API.Controllers
             [FromBody] UpdateProfileRequest request,
             CancellationToken cancellationToken)
         {
-            try
-            {
-                var userId = User.GetUserId();
-                await _userService.UpdateUserProfileAsync(
-                    userId,
-                    request.FirstName,
-                    request.LastName,
-                    request.Email,
-                    cancellationToken);
 
-                var updatedUser = await _userService.GetUserByIdAsync(userId, cancellationToken);
-                var userDto = _mapper.Map<UserDto>(updatedUser!);
+            var userId = User.GetUserId();
+            await _userService.UpdateUserProfileAsync(
+                userId,
+                request.FirstName,
+                request.LastName,
+                request.Email,
+                cancellationToken);
 
-                return Ok(new ApiResponse<UserDto> { Data = userDto, Message = "Profile updated successfully" });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new ApiResponse<UserDto> { Success = false, Error = ex.Message });
-            }
+            var updatedUser = await _userService.GetUserByIdAsync(userId, cancellationToken);
+            var userDto = _mapper.Map<UserDto>(updatedUser!);
+
+            return Ok(new ApiResponse<UserDto> { Data = userDto, Message = "Profile updated successfully" });
         }
 
         [HttpPut("me/password")]
@@ -97,21 +80,15 @@ namespace UserService.API.Controllers
             [FromBody] ChangePasswordRequest request,
             CancellationToken cancellationToken)
         {
-            try
-            {
-                var userId = User.GetUserId();
-                await _userService.ChangePasswordAsync(
-                    userId,
-                    request.CurrentPassword,
-                    request.NewPassword,
-                    cancellationToken);
 
-                return Ok(new ApiResponse { Message = "Password changed successfully" });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new ApiResponse { Success = false, Error = ex.Message });
-            }
+            var userId = User.GetUserId();
+            await _userService.ChangePasswordAsync(
+                userId,
+                request.CurrentPassword,
+                request.NewPassword,
+                cancellationToken);
+
+            return Ok(new ApiResponse { Message = "Password changed successfully" });
         }
 
         [HttpPatch("{id:guid}/status")]
@@ -121,23 +98,18 @@ namespace UserService.API.Controllers
             [FromBody] UpdateUserStatusRequest request,
             CancellationToken cancellationToken)
         {
-            try
+
+            if (request.IsActive)
             {
-                if (request.IsActive)
-                {
-                    await _userService.ActivateUserAsync(id, cancellationToken);
-                    return Ok(new ApiResponse { Message = "User activated successfully" });
-                }
-                else
-                {
-                    await _userService.DeactivateUserAsync(id, cancellationToken);
-                    return Ok(new ApiResponse { Message = "User deactivated successfully" });
-                }
+                await _userService.ActivateUserAsync(id, cancellationToken);
+                return Ok(new ApiResponse { Message = "User activated successfully" });
             }
-            catch (Exception ex)
+            else
             {
-                return BadRequest(new ApiResponse { Success = false, Error = ex.Message });
+                await _userService.DeactivateUserAsync(id, cancellationToken);
+                return Ok(new ApiResponse { Message = "User deactivated successfully" });
             }
+            
         }
 
         [HttpGet("validation/email")]
@@ -145,15 +117,9 @@ namespace UserService.API.Controllers
             [FromQuery] string email,
             CancellationToken cancellationToken)
         {
-            try
-            {
-                var isAvailable = await _userService.IsEmailUniqueAsync(email, cancellationToken);
-                return Ok(new ApiResponse<bool> { Data = isAvailable });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new ApiResponse<bool> { Success = false, Error = ex.Message });
-            }
+
+            var isAvailable = await _userService.IsEmailUniqueAsync(email, cancellationToken);
+            return Ok(new ApiResponse<bool> { Data = isAvailable });
         }
     }
 }

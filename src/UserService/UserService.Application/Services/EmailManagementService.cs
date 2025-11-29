@@ -4,7 +4,7 @@ using UserService.Domain.Interfaces;
 
 namespace UserService.Application.Services
 {
-    public class EmailManagementService
+    public class EmailManagementService : IEmailManagementService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IEmailService _emailService;
