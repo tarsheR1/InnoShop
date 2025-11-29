@@ -11,5 +11,6 @@ namespace ProductService.Application.Interfaces
         Task<Product> CreateProductAsync(CreateProductCommand command);
         Task<Product?> UpdateProductAsync(UpdateProductCommand command, string userId);
         Task<bool> DeleteProductAsync(DeleteProductCommand command);
+        Task<bool> DeactivateUserProductsAsync(string userId);
     }
 }
