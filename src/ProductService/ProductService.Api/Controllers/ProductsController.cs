@@ -93,5 +93,15 @@ namespace ProductService.Api.Controllers
 
             return NoContent();
         }
+
+        [HttpPost("users/{userId:string}/deactivate-products")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult> DeactivateUserProducts(
+        string userId,
+        CancellationToken cancellationToken)
+        {
+            await _productService.DeactivateUserProductsAsync(userId);
+            return Ok();
+        }
     }
 }

@@ -115,7 +115,7 @@ namespace ProductService.Application.Services
             return true;
         }
 
-        public async Task<bool> DeleteUserProductsAsync(string userId)
+        public async Task<bool> DeactivateUserProductsAsync(string userId)
         {
             var products = await _unitOfWork.Products.GetByUserIdAsync(userId);
             if (products == null)
